@@ -15,8 +15,7 @@ class PostRepository {
   PostList get cachedPosts => _cachedPosts.value;
 
   Future<void> fetchPosts(int page) async {
-    // throw Exception('Failed to load posts');
-    // for optimization
+    // for optimization (fail-fast)
     if (_cachedPosts.value.hasReachedMax) return;
 
     final response = await http.get(
@@ -59,10 +58,8 @@ class PostRepository {
     try {
       // simulate an API call to update the post's favorite status
       await Future.delayed(const Duration(seconds: 2));
-
-      throw Exception('Failed to load posts');
     } catch (e) {
-      // revert post
+      // revert optimistic update to cache on remote-call error
       final revertedPosts = cachedPosts.posts.map((element) {
         return element.id == post.id
             ? post.copyWith(isFavorite: post.isFavorite)
@@ -73,9 +70,5 @@ class PostRepository {
 
       throw Exception('Failed to like posts');
     }
-  }
-
-  void dispose() {
-    _cachedPosts.close();
   }
 }

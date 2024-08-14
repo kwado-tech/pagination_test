@@ -150,25 +150,23 @@ class _PostListScreenState extends State<PostListScreen> {
           body: BlocConsumer<PostBloc, PostState>(
             listenWhen: (previous, current) => true,
             listener: (context, state) {
-              if (state is PostError && watchState.postList.posts.isNotEmpty) {
+              if (state is PostError && !state.isInitialContent) {
                 Fluttertoast.showToast(msg: 'Something went wrong!');
               }
             },
             builder: (context, state) {
               if (state is PostLoading) {
-                if (watchState.postList.posts.isEmpty) {
+                if (state.isInitialContent) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
                 return _buildPostList(watchState);
               }
 
-              if (state is PostLoaded) {
-                return _buildPostList(watchState);
-              }
+              if (state is PostLoaded) return _buildPostList(watchState);
 
               if (state is PostError) {
-                if (watchState.postList.posts.isNotEmpty) {
+                if (!state.isInitialContent) {
                   return _buildPostList(watchState);
                 }
 

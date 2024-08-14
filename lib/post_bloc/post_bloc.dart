@@ -18,16 +18,18 @@ class PostBloc extends Bloc<PostEvent, PostState> {
     _currentPage++;
   }
 
+  bool get isInitialContent => _postRepository.cachedPosts.posts.isEmpty;
+
   Future<void> _onFetchPosts(FetchPosts event, Emitter<PostState> emit) async {
     if (state is PostInitial) {
       try {
-        emit(const PostLoading(initialPage: true));
+        emit(PostLoading(isInitialContent: isInitialContent));
 
         await _fetchPosts();
 
         return emit(const PostLoaded());
       } catch (_) {
-        return emit(const PostError(initialPage: true));
+        return emit(PostError(isInitialContent: isInitialContent));
       }
     }
 
@@ -37,19 +39,19 @@ class PostBloc extends Bloc<PostEvent, PostState> {
 
         return emit(const PostLoaded());
       } catch (error) {
-        return emit(const PostError());
+        return emit(PostError(isInitialContent: isInitialContent));
       }
     }
 
     if (state is PostError) {
-      emit(const PostLoading());
+      emit(PostLoading(isInitialContent: isInitialContent));
 
       try {
         await _fetchPosts();
 
         return emit(const PostLoaded());
       } catch (error) {
-        return emit(const PostError());
+        return emit(PostError(isInitialContent: isInitialContent));
       }
     }
   }
@@ -63,7 +65,9 @@ class PostBloc extends Bloc<PostEvent, PostState> {
 
       emit(const PostLoaded());
     } catch (e) {
-      return emit(PostError(message: e.toString()));
+      emit(
+        PostError(message: e.toString(), isInitialContent: isInitialContent),
+      );
     }
   }
 }

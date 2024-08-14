@@ -10,12 +10,12 @@ abstract class PostState extends Equatable {
 class PostInitial extends PostState {}
 
 class PostLoading extends PostState {
-  final bool initialPage;
+  final bool isInitialContent;
 
-  const PostLoading({this.initialPage = false});
+  const PostLoading({this.isInitialContent = false});
 
   @override
-  List<Object> get props => [initialPage];
+  List<Object> get props => [isInitialContent];
 }
 
 class PostLoaded extends PostState {
@@ -27,10 +27,10 @@ class PostLoaded extends PostState {
 
 class PostError extends PostState {
   final String message;
-  final bool initialPage;
+  final bool isInitialContent;
 
-  const PostError({this.message = '', this.initialPage = false});
+  const PostError({this.message = '', this.isInitialContent = false});
 
   @override
-  List<Object> get props => [message, initialPage];
+  List<Object> get props => [message, isInitialContent];
 }
