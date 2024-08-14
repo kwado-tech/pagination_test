@@ -20,7 +20,7 @@ class PostRepository {
 
     final response = await http.get(
       Uri.parse(
-          'https://jsonplaceholder.typicode.com/posts?_page=$page&_limit=20'),
+          'https://jsonplaceholder.typicode.com/posts?_page=$page&_limit=30'),
     );
 
     if (response.statusCode == 200) {
