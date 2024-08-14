@@ -94,46 +94,52 @@ class _PostListScreenState extends State<PostListScreen> {
     );
   }
 
-  Widget _buildPostList(WatchPostState state) {
-    if (state.postList.posts.isEmpty) {
-      return Column(
-        children: [
-          const Text('Sorry! There are no posts to view at this time'),
-          TextButton(
-            onPressed: () => context.read<PostBloc>().add(FetchPosts()),
-            child: const Text('Try again!'),
-          ),
-        ],
-      );
-    }
-
-    final posts = state.postList.posts;
-
-    return ListView.separated(
-      cacheExtent: double.maxFinite,
-      controller: _scrollController,
-      itemCount: state.postList.hasReachedMax ? posts.length : posts.length + 1,
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      separatorBuilder: (_, __) => const SizedBox(height: 5),
-      itemBuilder: (context, index) {
-        if (index >= posts.length) {
-          return _buildBottomActionIndicator();
+  // Widget _buildPostList(WatchPostState state) {
+  Widget _buildPostList() {
+    return BlocBuilder<WatchPostBloc, WatchPostState>(
+      builder: (context, state) {
+        if (state.postList.posts.isEmpty) {
+          return Column(
+            children: [
+              const Text('Sorry! There are no posts to view at this time'),
+              TextButton(
+                onPressed: () => context.read<PostBloc>().add(FetchPosts()),
+                child: const Text('Try again!'),
+              ),
+            ],
+          );
         }
 
-        final post = posts[index];
+        final posts = state.postList.posts;
 
-        return ListTile(
-          leading: Text(post.id.toString()),
-          title: Text(post.title),
-          trailing: IconButton(
-            icon: Icon(
-              post.isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: post.isFavorite ? Colors.red : null,
-            ),
-            onPressed: () {
-              BlocProvider.of<PostBloc>(context).add(ToggleFavorite(post));
-            },
-          ),
+        return ListView.separated(
+          cacheExtent: double.maxFinite,
+          controller: _scrollController,
+          itemCount:
+              state.postList.hasReachedMax ? posts.length : posts.length + 1,
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          separatorBuilder: (_, __) => const SizedBox(height: 5),
+          itemBuilder: (context, index) {
+            if (index >= posts.length) {
+              return _buildBottomActionIndicator();
+            }
+
+            final post = posts[index];
+
+            return ListTile(
+              leading: Text(post.id.toString()),
+              title: Text(post.title),
+              trailing: IconButton(
+                icon: Icon(
+                  post.isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: post.isFavorite ? Colors.red : null,
+                ),
+                onPressed: () {
+                  BlocProvider.of<PostBloc>(context).add(ToggleFavorite(post));
+                },
+              ),
+            );
+          },
         );
       },
     );
@@ -141,55 +147,55 @@ class _PostListScreenState extends State<PostListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WatchPostBloc, WatchPostState>(
-      builder: (context, watchState) {
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Posts'),
-          ),
-          body: BlocConsumer<PostBloc, PostState>(
-            listenWhen: (previous, current) => true,
-            listener: (context, state) {
-              if (state is PostError && !state.isInitialContent) {
-                Fluttertoast.showToast(msg: 'Something went wrong!');
-              }
-            },
-            builder: (context, state) {
-              if (state is PostLoading) {
-                if (state.isInitialContent) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+    // return BlocBuilder<WatchPostBloc, WatchPostState>(
+    //   builder: (context, watchState) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Posts'),
+      ),
+      body: BlocConsumer<PostBloc, PostState>(
+        listenWhen: (previous, current) => true,
+        listener: (context, state) {
+          if (state is PostError && !state.isInitialContent) {
+            Fluttertoast.showToast(msg: 'Something went wrong!');
+          }
+        },
+        builder: (context, state) {
+          if (state is PostLoading) {
+            if (state.isInitialContent) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                return _buildPostList(watchState);
-              }
+            return _buildPostList();
+            // return _buildPostList(watchState);
+          }
 
-              if (state is PostLoaded) return _buildPostList(watchState);
+          // if (state is PostLoaded) return _buildPostList(watchState);
+          if (state is PostLoaded) return _buildPostList();
 
-              if (state is PostError) {
-                if (!state.isInitialContent) {
-                  return _buildPostList(watchState);
-                }
+          if (state is PostError) {
+            // if (!state.isInitialContent) return _buildPostList(watchState);
+            if (!state.isInitialContent) return _buildPostList();
 
-                return Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('Something went wrong!'),
-                      TextButton(
-                        onPressed: () =>
-                            context.read<PostBloc>().add(FetchPosts()),
-                        child: const Text('Try again!'),
-                      ),
-                    ],
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Something went wrong!'),
+                  TextButton(
+                    onPressed: () => context.read<PostBloc>().add(FetchPosts()),
+                    child: const Text('Try again!'),
                   ),
-                );
-              }
+                ],
+              ),
+            );
+          }
 
-              return Container();
-            },
-          ),
-        );
-      },
+          return Container();
+        },
+      ),
     );
+    //   },
+    // );
   }
 }

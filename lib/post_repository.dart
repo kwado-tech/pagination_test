@@ -15,12 +15,12 @@ class PostRepository {
   PostList get cachedPosts => _cachedPosts.value;
 
   Future<void> fetchPosts(int page) async {
-    // for optimization (fail-fast)
+    // return-fast for optimization
     if (_cachedPosts.value.hasReachedMax) return;
 
     final response = await http.get(
       Uri.parse(
-          'https://jsonplaceholder.typicode.com/posts?_page=$page&_limit=15'),
+          'https://jsonplaceholder.typicode.com/posts?_page=$page&_limit=20'),
     );
 
     if (response.statusCode == 200) {
