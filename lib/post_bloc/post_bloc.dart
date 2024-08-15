@@ -9,50 +9,25 @@ class PostBloc extends Bloc<PostEvent, PostState> {
   int _currentPage = 1;
 
   PostBloc(this._postRepository) : super(PostInitial()) {
-    on<FetchPosts>(_onFetchPosts, transformer: droppable());
+    on<FetchPosts>(_handleFetchPost, transformer: droppable());
     on<ToggleFavorite>(_onToggleFavorite);
-  }
-
-  Future<void> _fetchPosts() async {
-    await _postRepository.fetchPosts(_currentPage);
-    _currentPage++;
   }
 
   bool get isInitialContent => _postRepository.cachedPosts.posts.isEmpty;
 
-  Future<void> _onFetchPosts(FetchPosts event, Emitter<PostState> emit) async {
-    if (state is PostInitial) {
-      try {
-        emit(PostLoading(isInitialContent: isInitialContent));
-
-        await _fetchPosts();
-
-        return emit(const PostLoaded());
-      } catch (_) {
-        return emit(PostError(isInitialContent: isInitialContent));
-      }
-    }
-
-    if (state is PostLoaded) {
-      try {
-        await _fetchPosts();
-
-        return emit(const PostLoaded());
-      } catch (error) {
-        return emit(PostError(isInitialContent: isInitialContent));
-      }
-    }
-
-    if (state is PostError) {
+  Future<void> _handleFetchPost(
+      FetchPosts event, Emitter<PostState> emit) async {
+    if (state is! PostLoaded) {
       emit(PostLoading(isInitialContent: isInitialContent));
+    }
 
-      try {
-        await _fetchPosts();
+    try {
+      await _postRepository.fetchPosts(_currentPage);
+      _currentPage++;
 
-        return emit(const PostLoaded());
-      } catch (error) {
-        return emit(PostError(isInitialContent: isInitialContent));
-      }
+      return emit(const PostLoaded());
+    } catch (_) {
+      return emit(PostError(isInitialContent: isInitialContent));
     }
   }
 
