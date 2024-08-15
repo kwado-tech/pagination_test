@@ -50,14 +50,14 @@ class _PostListScreenState extends State<PostListScreen> {
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
-    _scrollController.addListener(_onScroll);
+    _scrollController = ScrollController()..addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
     super.dispose();
   }
 
@@ -96,7 +96,15 @@ class _PostListScreenState extends State<PostListScreen> {
 
   // Widget _buildPostList(WatchPostState state) {
   Widget _buildPostList() {
-    return BlocBuilder<WatchPostBloc, WatchPostState>(
+    return BlocConsumer<WatchPostBloc, WatchPostState>(
+      listener: (context, state) {
+        final shouldFetchNextPage = state.postList.posts.length <= 10;
+
+        // handle immediately fetching next page if posts are less than target count (to fill the viewport)
+        if (shouldFetchNextPage) {
+          BlocProvider.of<PostBloc>(context).add(FetchPosts());
+        }
+      },
       builder: (context, state) {
         if (state.postList.posts.isEmpty) {
           return Column(
@@ -147,8 +155,6 @@ class _PostListScreenState extends State<PostListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // return BlocBuilder<WatchPostBloc, WatchPostState>(
-    //   builder: (context, watchState) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Posts'),
@@ -195,7 +201,5 @@ class _PostListScreenState extends State<PostListScreen> {
         },
       ),
     );
-    //   },
-    // );
   }
 }
