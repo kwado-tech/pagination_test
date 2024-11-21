@@ -7,7 +7,9 @@ import 'package:pagination_test/post_bloc/post_state.dart';
 import 'package:pagination_test/watch_post_bloc/watch_post_bloc.dart';
 import 'package:pagination_test/watch_post_bloc/watch_post_event.dart';
 import 'package:pagination_test/watch_post_bloc/watch_post_state.dart';
+import 'package:pagination_test/watch_single_post_bloc/watch_single_post_bloc.dart';
 
+import 'post.dart';
 import 'post_repository.dart';
 
 void main() {
@@ -135,6 +137,24 @@ class _PostListScreenState extends State<PostListScreen> {
             final post = posts[index];
 
             return ListTile(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider(
+                            create: (context) => PostBloc(PostRepository())),
+                        BlocProvider<WatchSinglePostBloc>(
+                          create: (context) =>
+                              WatchSinglePostBloc(PostRepository())
+                                ..add(WatchSinglePostEvent(postId: post.id)),
+                        ),
+                      ],
+                      child: PostDetailsScreen(postId: post.id),
+                    ),
+                  ),
+                );
+              },
               leading: Text(post.id.toString()),
               title: Text(post.title),
               trailing: IconButton(
@@ -200,6 +220,49 @@ class _PostListScreenState extends State<PostListScreen> {
           return Container();
         },
       ),
+    );
+  }
+}
+
+class PostDetailsScreen extends StatelessWidget {
+  final int postId;
+
+  const PostDetailsScreen({super.key, required this.postId});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<WatchSinglePostBloc, WatchSinglePostState>(
+      builder: (context, state) {
+        return switch (state) {
+          WatchSinglePostLoaded(:final post) => Scaffold(
+              appBar: AppBar(
+                title: Text('Post - ${post.id}'),
+                actions: [
+                  BlocBuilder<PostBloc, PostState>(
+                    builder: (context, state) {
+                      return IconButton(
+                        icon: Icon(
+                          post.isFavorite
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: post.isFavorite ? Colors.red : null,
+                        ),
+                        onPressed: () {
+                          BlocProvider.of<PostBloc>(context)
+                              .add(ToggleFavorite(post));
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+              body: Center(
+                child: Text(post.title),
+              ),
+            ),
+          _ => const CircularProgressIndicator(),
+        };
+      },
     );
   }
 }

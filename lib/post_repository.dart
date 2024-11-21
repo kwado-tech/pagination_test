@@ -23,7 +23,7 @@ class PostRepository {
           'https://jsonplaceholder.typicode.com/posts?_page=$page&_limit=5'),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200) { 
       final List<dynamic> jsonData = json.decode(response.body);
       final List<Post> posts = jsonData
           .map((json) => Post(
